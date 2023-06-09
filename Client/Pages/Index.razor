@@ -1,3 +1,85 @@
 ﻿@page "/"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider AuthState
+@inject IAccessTokenProvider TokenProvider
 
-<h1>Hello, world!</h1>
+<AuthorizeView>
+   <Authorized>
+      <h1>Hello @user.Identity.Name</h1>
+      <div><a href="#" @onclick="Logout" @onclick:preventDefault>Logout</a></div>
+      <table>
+         <tr><th>Type</th><th>Value</th><th>Value Type</th><th>Props count</th></tr>
+         @foreach (var claim in user.Claims) {
+            <tr>
+               <td>
+                  <div>@claim.Type</div>
+                  <div style="color: silver; font-size: .6em">@claim.ValueType</div>
+               </td>
+               <td><pre>@claim.Value</pre></td>
+               <td>
+                  @if (claim.Properties.Count > 0) {
+                     <table style="border: 1px solid black">
+                        @foreach (var k in claim.Properties.Keys) {
+                           <tr><td>@k</td><td>@claim.Properties[k]</td></tr>
+                        }
+                     </table>
+                  }
+                  else {
+                     <span>&nbsp;</span>
+                  }
+               </td>
+            </tr>
+         }
+      </table>
+      
+      @if (accessToken is not null) {
+         <h1>Access Token</h1>
+         <table>
+            <tr><th>Expiration</th><td>@accessToken.Expires.ToLocalTime().ToString("f")</td></tr>
+            <tr><th>Scopes</th><td>@string.Join(", ",accessToken.GrantedScopes)</td></tr>
+         </table>
+         <pre style="white-space: pre-wrap; word-wrap: break-word">@accessToken.Value</pre>
+      }
+   </Authorized>
+   <NotAuthorized>
+      <p>Please login</p>
+      <div>
+         <a href="#" @onclick="Login" @onclick:preventDefault>Login</a>
+      </div>
+   </NotAuthorized>
+</AuthorizeView>
+
+<hr/>
+<footer>
+   This is a simplified version of 
+   <a href="https://learn.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/standalone-with-authentication-library">
+      OIDC Authentication in Blazor WASM Standalone Projects
+   </a>.
+</footer>
+
+@code {
+
+   ClaimsPrincipal user = new (new ClaimsIdentity());
+   AccessToken? accessToken;
+
+   protected override async Task OnInitializedAsync() {
+      var authState = await AuthState.GetAuthenticationStateAsync();
+      user = authState.User;
+
+      var result = await TokenProvider.RequestAccessToken();
+      Console.WriteLine($"Result status = {result.Status}");
+      var canGet = result.TryGetToken(out accessToken);
+      Console.WriteLine($"Can get = {canGet}");
+   }
+
+   void Login() {
+      NavManager.NavigateToLogin("authentication/login");
+   }
+
+   void Logout() {
+      NavManager.NavigateToLogout("/authentication/logout", "/");
+   }
+
+}
