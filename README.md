@@ -30,5 +30,6 @@ serve `/_configuration/{clientId}`, which provides the OIDC settings to the
 client. See the `OidcConfigurationController.cs` file for an example.
 
 # See also
-* [Auth0 (or any OIDC) with Blazor WASM standalone](https://github.com/ruxo/blazor-wasm-auth0)
 * [Blazor Server with Auth0 abridge version](https://github.com/ruxo/blazor-server-auth0)
+* [Auth0 with Blazor Server using OpenIdConnect library](https://github.com/ruxo/blazor-server-oidc-auth0)
+* [Auth0 (or any OIDC) with Blazor WASM standalone](https://github.com/ruxo/blazor-wasm-auth0)
